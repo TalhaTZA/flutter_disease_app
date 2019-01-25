@@ -7,8 +7,9 @@ import 'dart:math';
 
 class Klimatic extends StatefulWidget {
   final String name;
+  final List<dynamic> diseasesDynamic;
 
-  Klimatic({Key key, this.name}) : super(key: key);
+  Klimatic({Key key, this.name , this.diseasesDynamic}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => new _KlimaticState();
@@ -20,6 +21,9 @@ class _KlimaticState extends State<Klimatic> {
 
   @override
   Widget build(BuildContext context) {
+
+    parseList();
+
     return new Scaffold(
       appBar: new AppBar(
         centerTitle: true,
@@ -27,7 +31,7 @@ class _KlimaticState extends State<Klimatic> {
         backgroundColor: Colors.redAccent,
         actions: <Widget>[
           new IconButton(
-              icon: new Icon(Icons.refresh), onPressed: () => getDiesasesList())
+              icon: new Icon(Icons.refresh), onPressed: () => debugPrint('refresh pressed'))
         ],
       ),
       body: new GestureDetector(
@@ -41,6 +45,11 @@ class _KlimaticState extends State<Klimatic> {
         ),
       ),
     );
+  }
+
+  void parseList(){
+    _listDisease = List<Disease>.from(widget.diseasesDynamic.map((i) => Disease.fromJson(i)));
+    changeDisease();
   }
 
   Future<List> getDiesasesList() async {

@@ -64,7 +64,8 @@ class LoginState extends State<Login> {
                           return new Container(
                             margin: new EdgeInsets.only(left: 38.0),
                             child: new RaisedButton(
-                              onPressed: () => _showWelcome(context),
+                              onPressed: () => _showWelcome(
+                                  cxt: context, route: 'users/login'),
                               color: Colors.redAccent,
                               child: new Text(
                                 "Login",
@@ -74,18 +75,21 @@ class LoginState extends State<Login> {
                             ),
                           );
                         }),
-                        new Container(
-                          margin: new EdgeInsets.only(left: 120.0),
-                          child: new RaisedButton(
-                            onPressed: _erase,
-                            color: Colors.redAccent,
-                            child: new Text(
-                              "Clear",
-                              style: new TextStyle(
-                                  color: Colors.white, fontSize: 16.9),
+                        new Builder(builder: (BuildContext context) {
+                          return new Container(
+                            margin: new EdgeInsets.only(left: 120),
+                            child: new RaisedButton(
+                              onPressed: () => _showWelcome(
+                                  cxt: context, route: 'users/register'),
+                              color: Colors.redAccent,
+                              child: new Text(
+                                "Register",
+                                style: new TextStyle(
+                                    color: Colors.white, fontSize: 16.9),
+                              ),
                             ),
-                          ),
-                        )
+                          );
+                        })
                       ],
                     ),
                   )
@@ -126,7 +130,7 @@ class LoginState extends State<Login> {
     SystemChannels.textInput.invokeMethod('TextInput.hide');
   }
 
-  void _showWelcome(BuildContext cxt) {
+  void _showWelcome({BuildContext cxt, String route}) {
     _context = cxt;
 
     hideKeyPad();
@@ -136,7 +140,7 @@ class LoginState extends State<Login> {
           _passwordController.text.isNotEmpty) {
         //_welcome = _userController.text;
 
-        getUser();
+        getUser(route: route);
       } else {
         Scaffold.of(cxt).showSnackBar(new SnackBar(
           content: new Text(
@@ -150,9 +154,12 @@ class LoginState extends State<Login> {
     });
   }
 
-  Future<Map> getUserFromServer() async {
-    http.Response response = await http.get(
-        "http://10.17.0.19:8888/user?name=${_userController.text}&password=${_passwordController.text}");
+  Future<Map> getUserFromServer({String route}) async {
+    http.Response response = await http.post("http://localhost:3000/$route",
+        body: {
+          "name": "${_userController.text}",
+          "password": "${_passwordController.text}"
+        });
 
     if (response.statusCode == 200) {
       debugPrint("${response.body}");
@@ -163,16 +170,17 @@ class LoginState extends State<Login> {
     }
   }
 
-  user.User getUser() {
-    getUserFromServer().then((data) {
+  user.User getUser({String route}) {
+    getUserFromServer(route: route).then((data) {
       var check = user.User.fromJson(data);
       debugPrint("${check.name}");
       showSnackBar(content: "${check.name}", indUser: check);
 
       var router = new MaterialPageRoute(
           builder: (BuildContext context) => new k.Klimatic(
-            name: check.name,
-          ));
+                name: check.name,
+                diseasesDynamic: check.diseases,
+              ));
 
       Future.delayed(const Duration(milliseconds: 1000), () {
         Navigator.of(context).push(router);
